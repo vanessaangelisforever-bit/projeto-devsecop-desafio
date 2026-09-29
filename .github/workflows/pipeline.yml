@@ -43,7 +43,7 @@ jobs:
       # Dica: instale com "pip install semgrep" e rode
       #   semgrep scan --config auto --config p/xss --error src/
       - name: 🔍 SAST - Semgrep
-        run: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v2
 
       # ❌ PASSO A IMPLEMENTAR — SCA com Grype.
       # Dica: primeiro, gere o package-lock pelo npm:
