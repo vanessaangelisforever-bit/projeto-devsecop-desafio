@@ -45,7 +45,7 @@ jobs:
       - name: 🔍 SAST - Semgrep
         run: echo "TODO - implemente o SAST com Semgrep aqui"
 
-      # ❌ PASSO A IMPLEMENTAR — SCA com Grype
+      # ❌ PASSO A IMPLEMENTAR — SCA com Grype.
       # Dica: primeiro, gere o package-lock pelo npm:
       #   npm install --package-lock-only --no-audit --no-fund
       # Depois instale o Grype:
