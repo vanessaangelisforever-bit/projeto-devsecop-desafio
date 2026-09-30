@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: 📥 Checkout do Código
-        uses:_actions/checkout@v4
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -79,7 +79,7 @@ grype dir:./ --fail-on medium
           echo "SHA256: $digest"
 
       - name: ✍️ Instalar Cosign
-        uses: sigstore/cosign-installer@v3
+    uses: sigstore/cosign-installer@v3
 
       # ⚠️ MOCK DE ASSINATURA
       # Este passo NÃO assina de verdade — ele gera um bundle falso, só para
