@@ -56,8 +56,11 @@ jobs:
       # E rode:
       #   grype dir:. --fail-on medium
       - name: 📦 SCA - Grype
-        run: echo "TODO - implemente o SCA com Grype aqui"
-
+      run: |
+npm install --package-lock-only
+curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh \
+| sh -s -- -b /usr/local/bin
+grype dir:./ --fail-on medium
       # ── Empacota o site em um artefato tar (formato que o Pages consome)
       - name: 📦 Empacotar artefato do site
         run: |
@@ -86,19 +89,19 @@ jobs:
       #   cosign sign-blob artifact.tar --bundle artifact.sigstore.json --yes
       - name: ✍️ Assinar artefato
         run: |
-          echo '{ "mock": "assinatura-invalida-para-demonstracao" }' > artifact.sigstore.json
-          echo "Assinatura MOCK gerada."
+         cosign sign-blob --yes
+         --output-signature artifact.tar.sign
+         artifact.tar
 
       # ── Publica o artefato + bundle de assinatura para o próximo job
       - name: ⬆️ Upload do artefato assinado
         uses: actions/upload-artifact@v4
         with:
-          name: site-assinado
+          name: site-artefato
           path: |
             artifact.tar
-            artifact.sigstore.json
             artifact.tar.sha256
-          retention-days: 1
+            artifact.tar.sign
 
   # ────────────────────────────────────────────────────────────────
   # JOB 2 — Verifica a assinatura e só então faz o deploy
@@ -107,15 +110,17 @@ jobs:
     name: Verificação e Deploy
     needs: build
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    Permissions:
+    Contents: read
+    pages: write
+    id-token: write
 
     steps:
       - name: ⬇️ Baixar o artefato assinado
         uses: actions/download-artifact@v4
         with:
-          name: site-assinado
+          name: site-artefato
+
 
       - name: ✍️ Instalar Cosign
         uses: sigstore/cosign-installer@v3
@@ -137,13 +142,11 @@ jobs:
 
       - name: 🌐 Configurar GitHub Pages
         uses: actions/configure-pages@v4
-
-      - name: 📤 Upload para Produção
+      - name: Upload de páginas
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./site
-
-      # Realiza o deploy
-      - name: 🚀 Deploy em Produção
+            path: site/    
+        
+        - name: Publicar no Github Pages
         id: deployment
         uses: actions/deploy-pages@v4
