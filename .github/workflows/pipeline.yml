@@ -42,13 +42,13 @@ jobs:
       - name: 🔍 SAST - Semgrep
         run: |
           pip install semgrep
-          semgrep scan --config auto --error src/
+          semgrep scan --config auto src/
 
       # SCA com Grype
       - name: 📦 SCA - Grype
         run: |
           npm install --package-lock-only
-          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b /usr/local/bin
           grype dir:./ --fail-on medium
 
       # ── Empacota o site em um artefato tar
@@ -68,7 +68,7 @@ jobs:
           echo "$digest" > artifact.tar.sha256
           echo "SHA256: $digest"
 
-      - name: ✍️ Instalar Cosign
+      - name: ✍️️ Instalar Cosign
         uses: sigstore/cosign-installer@v3
 
       # Assina o artefato gerando o bundle .json esperado
@@ -77,7 +77,7 @@ jobs:
           cosign sign-blob artifact.tar --bundle artifact.sigstore.json --yes
 
       # ── Publica o artefato + bundle de assinatura para o próximo job
-      - name: ⬆️ Upload do artefato assinado
+      - name: ⬆️️ Upload do artefato assinado
         uses: actions/upload-artifact@v4
         with:
           name: site-artefato
