@@ -18,7 +18,7 @@ jobs:
     name: Build, Segurança e Assinatura
     runs-on: ubuntu-latest
 
-        steps:
+    steps:
       - name: 📥 Checkout do Código
         uses: actions/checkout@v4
         with:
@@ -34,34 +34,24 @@ jobs:
           ls src/
           echo "Build OK!"
 
-      # ❌ PASSO A IMPLEMENTAR — Secrets Scanning com Gitleaks
-      # Dica: use a action oficial "gitleaks/gitleaks-action@v2" e passe o
+      # Secrets Scanning com Gitleaks
       - name: 🔑 Secrets Scanning
-      uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v2
 
-      # ❌ PASSO A IMPLEMENTAR — SAST com Semgrep
-      # Dica: instale com "pip install semgrep" e rode
-      #   semgrep scan --config auto --config p/xss --error src/
+      # SAST com Semgrep
       - name: 🔍 SAST - Semgrep
         run: |
           pip install semgrep
           semgrep scan --config auto --error src/
 
-
-      # ❌ PASSO A IMPLEMENTAR — SCA com Grype.
-      # Dica: primeiro, gere o package-lock pelo npm:
-      #   npm install --package-lock-only --no-audit --no-fund
-      # Depois instale o Grype:
-      #   curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
-      # E rode:
-      #   grype dir:. --fail-on medium
+      # SCA com Grype
       - name: 📦 SCA - Grype
-      run: |
-npm install --package-lock-only
-curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh \
-| sh -s -- -b /usr/local/bin
-grype dir:./ --fail-on medium
-      # ── Empacota o site em um artefato tar (formato que o Pages consome)
+        run: |
+          npm install --package-lock-only
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+          grype dir:./ --fail-on medium
+
+      # ── Empacota o site em um artefato tar
       - name: 📦 Empacotar artefato do site
         run: |
           tar \
@@ -79,19 +69,12 @@ grype dir:./ --fail-on medium
           echo "SHA256: $digest"
 
       - name: ✍️ Instalar Cosign
-    uses: sigstore/cosign-installer@v3
+        uses: sigstore/cosign-installer@v3
 
-      # ⚠️ MOCK DE ASSINATURA
-      # Este passo NÃO assina de verdade — ele gera um bundle falso, só para
-      # demonstração.
-      #
-      # Dica da assinatura real:
-      #   cosign sign-blob artifact.tar --bundle artifact.sigstore.json --yes
+      # Assina o artefato gerando o bundle .json esperado
       - name: ✍️ Assinar artefato
         run: |
-         cosign sign-blob --yes
-         --output-signature artifact.tar.sign
-         artifact.tar
+          cosign sign-blob artifact.tar --bundle artifact.sigstore.json --yes
 
       # ── Publica o artefato + bundle de assinatura para o próximo job
       - name: ⬆️ Upload do artefato assinado
@@ -101,26 +84,26 @@ grype dir:./ --fail-on medium
           path: |
             artifact.tar
             artifact.tar.sha256
-            artifact.tar.sign
+            artifact.sigstore.json
 
   # ────────────────────────────────────────────────────────────────
-  # JOB 2 — Verifica a assinatura e só então faz o deploy
+  # JOB 2 — Verifica a assinatura e faz o deploy
   # ────────────────────────────────────────────────────────────────
   deploy:
     name: Verificação e Deploy
     needs: build
     runs-on: ubuntu-latest
-    Permissions:
-    Contents: read
-    pages: write
-    id-token: write
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
 
     steps:
       - name: ⬇️ Baixar o artefato assinado
         uses: actions/download-artifact@v4
         with:
           name: site-artefato
-
 
       - name: ✍️ Instalar Cosign
         uses: sigstore/cosign-installer@v3
@@ -142,11 +125,12 @@ grype dir:./ --fail-on medium
 
       - name: 🌐 Configurar GitHub Pages
         uses: actions/configure-pages@v4
+
       - name: Upload de páginas
         uses: actions/upload-pages-artifact@v3
         with:
-            path: site/    
-        
-        - name: Publicar no Github Pages
+          path: site/
+
+      - name: Publicar no Github Pages
         id: deployment
         uses: actions/deploy-pages@v4
