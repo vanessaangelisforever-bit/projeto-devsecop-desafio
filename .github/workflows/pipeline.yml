@@ -1,7 +1,10 @@
 name: 🔐 Pipeline DevSecOps
 
-on: .githut/workflows/<seu ficheiro>.yml
-    push:
+on:
+  push:
+    branches:
+      - main
+  pull_request:
     branches:
       - main
 
@@ -9,7 +12,6 @@ permissions:
   contents: read
   pages: write
   id-token: write
-
 jobs:
   # ────────────────────────────────────────────────────────────────
   # JOB 1 — Build, segurança e assinatura do artefato
