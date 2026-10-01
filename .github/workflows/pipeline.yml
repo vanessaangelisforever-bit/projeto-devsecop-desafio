@@ -1,7 +1,7 @@
 name: 🔐 Pipeline DevSecOps
 
 on: .githut/workflows/<seu ficheiro>.yml
-  push:
+    push:
     branches:
       - main
 
